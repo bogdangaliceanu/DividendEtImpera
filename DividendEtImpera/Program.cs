@@ -42,11 +42,15 @@ namespace DividendEtImpera
                 var tableClosingTagIndex = companyListHtml.IndexOf("</table>");
                 var companiesTable = companyListHtml.Substring(tableOpeningTagIndex, tableClosingTagIndex - tableOpeningTagIndex + "</table>".Length);
 
-                var doc = XDocument.Parse(companiesTable);
-                return doc.Element("table")
-                    .Elements("tr")
-                    .Skip(1)
-                    .Select(tr => tr.Descendants("a").Single().Value)
+                var symbolLines = companiesTable.Split("\n", StringSplitOptions.RemoveEmptyEntries)
+                    .Where(line => line.Contains("hylSymbol"));
+
+                return symbolLines
+                    .Select(line =>
+                    {
+                        var startIndex = line.IndexOf('>') + 1;
+                        return line.Substring(startIndex, line.LastIndexOf('<') - startIndex);
+                    })
                     .ToArray();
             }
         }
@@ -62,7 +66,7 @@ namespace DividendEtImpera
             {
                 for (var i = 0; i < symbols.Length; i++)
                 {
-                    await Task.Delay(random.Next(504, 1371));
+                    await Task.Delay(random.Next(504, 2371));
 
                     var stockHtml = await client.GetStringAsync($"https://www.tradeville.eu/actiuni/actiuni-{symbols[i]}");
 
